@@ -18,7 +18,7 @@ from datetime import datetime
 from datetime import timedelta
 import chartkick
 import pandas as pd
-import pickle
+import pickle,json
 from pandas_highcharts.core import serialize
 
 app = Flask(__name__)
@@ -29,8 +29,8 @@ app.jinja_env.add_extension("chartkick.ext.charts")
 
 @app.route("/")
 def main():
-    chart = loadData(years=5)
-    return render_template('main.html',chart=chart)
+    masterDic = loadData(years=5)
+    return render_template('main.html',masterDic=masterDic)
 
 # of form name/boughtprice
 def loadData(years):
@@ -47,7 +47,7 @@ def loadData(years):
     for i in df.index:
         name=df['stockname'][i]
         boughtprice = df['boughtprice'][i]
-        data = DataReader(name,  'yahoo', datetime.now()-timedelta(days=365*years), datetime.now())
+        data = DataReader(name,'yahoo', datetime.now()-timedelta(days=365*years), datetime.now())
         data = data[['Adj Close']]
         #make 21 day moving average
         data['21DayAvg'] = data['Adj Close'].rolling(21).mean().fillna(0)
@@ -59,13 +59,25 @@ def loadData(years):
             data['bought'] = bought
         else:
             data = pd.DataFrame(data)
+        content = serialize(data,render_to='chart'+str(counter), title=name.upper()+' Stock',output_type='json')
+        content = changeChartOptions(content)
         masterDic['chart'+str(counter)] = {'id':i,
                                             'name':name,
                                             'textdata':col[name],
-                                          'content':serialize(data,render_to='chart'+str(counter), title=name.upper()+' Stock',output_type='json')}
+                                          'content':content}
         counter+=1
     return masterDic
 
+def changeChartOptions(content):
+    content = json.loads(content)
+    content['rangeSelector'] = {'buttons':[{'type':'minute','count':24*60,
+    'text':'24HR'},{'type':'week','count':1,'text':'1W'},{'type':'month','count':1,
+    'text':'1M'},{'type':'month','count':3,'text':'3M'},{'type':'year','count':1,
+    'text':'1Y'},{'type':'all','text':'ALL'}]}
+    content['credits']={'enabled':False}
+    content = json.dumps(content)
+    return content
+    
 def getQuery(companyNames):
     base = 'http://finance.yahoo.com/d/quotes.csv?s='
     companyNamesJoined = '+'.join(companyNames)

@@ -1,11 +1,13 @@
 {% extends "layout.html" %}
 {% block body %}
 
-
-{% for key, value in chart.items() %}
+<style>
+    th{text-align:center}
+</style>
+{% for chart, value in masterDic.items() %}
 <div class ="col-lg-4 col-md-6 col-s-12">
-    <div id="{{key|safe}}"></div>
-    <div class="table-responsive">
+    <div id="{{chart|safe}}"></div>
+    <div class="table-responsive text-center">
         <table class="table">
             {% for metric, metricValue in value['textdata'].items() %}
             <tr>
@@ -16,7 +18,7 @@
         </table>
     </div>
     <script>
-        new Highcharts.Chart({{value['content']|safe}});
+        new Highcharts.StockChart({{value['content']|safe}});
     </script>
 </div>
 
