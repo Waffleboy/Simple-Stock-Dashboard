@@ -30,3 +30,9 @@ pip install -r requirements.txt
    ```
 
 3. Navigate to http://localhost:5000 and see your dashboard!
+
+## Future Improvements
+
++ Realtime graph
++ stock health
++ profit made
