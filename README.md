@@ -16,21 +16,17 @@ Simply clone the folder, and install the dependencies in the requirements.txt
 pip install requirements.txt -r
 ```
 
-## How to Use
+## How to Use - 3 Simple Steps
 
-### 3 Simple Steps
+1. Edit the 'stockname' column in input.csv with the symbols of the stock that you want to track. 
+  *The other columns, boughtprice and boughtamount are optional.
+  *boughtprice: price you bought the stock for
+  *boughtamount: amount of stock bought at specified price
 
-1) Edit the 'stockname' column in input.csv with the symbols of the stock that you want to track. 
-
-The other columns, boughtprice and boughtamount are optional.
-
-boughtprice: price you bought the stock for
-boughtamount: amount of stock bought at specified price
-
-2) In the main folder, run app.py
+2. In the main folder, run app.py
 
 ```python
 python app.py
 ```
 
-3) Navigate to http://localhost:5000 and see your dashboard!
+3. Navigate to http://localhost:5000 and see your dashboard!
