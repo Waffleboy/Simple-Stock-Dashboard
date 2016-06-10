@@ -10,7 +10,7 @@ Simple Stock Dashboard also collects no information, and the data is only stored
 
 ## Installation
 
-Simply clone the folder, and install the dependencies in the requirements.txt 
+Simply clone the folder, and install the dependencies in the requirements.txt. You need python with pip installed for this step. (pip is included by default for python 3.5 and above)
 
 ```python
 pip install -r requirements.txt
