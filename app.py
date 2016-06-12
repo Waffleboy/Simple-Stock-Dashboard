@@ -4,7 +4,7 @@ Created on Sun Jun  5 15:54:03 2016
 
 @author: waffleboy
 """
-from flask import Flask, render_template,request,redirect,url_for
+from flask import Flask, render_template,request
 from pandas.io.data import DataReader
 from datetime import datetime
 from datetime import timedelta
@@ -12,8 +12,15 @@ import pandas as pd
 import pickle,json
 from pandas_highcharts.core import serialize
 from collections import OrderedDict
+from io import StringIO
 
 app = Flask(__name__) #initialize app
+app.config['ALLOWED_EXTENSIONS'] = set(['csv'])
+
+# For a given file, return whether it's an allowed type or not
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1] in app.config['ALLOWED_EXTENSIONS']
 
 # Main function - Displays the data from masterDic, which contains all the information
 # to make the dashboard.
@@ -22,19 +29,22 @@ def main():
     masterDic = loadData(years=5)
     return render_template('main.html',masterDic=masterDic)
 
-@app.route('/upload', methods=['GET', 'POST'])
+@app.route('/upload', methods=['POST'])
 def upload():
-   if request.method == 'POST':
-      masterDic = loadData(5,request.args.get('file'))
-      return render_template('main.html',masterDic=masterDic)
-   
+    file = request.files['file']
+    # Check if the file is one of the allowed types/extensions
+    if file and allowed_file(file.filename):
+        file = file.read().decode("utf-8") 
+        masterDic = loadData(5,True,pd.read_csv(StringIO(file)))
+        return render_template('main.html',masterDic=masterDic)
+       
 # generates the master dictionary that contains all information for text and graph
 # Input: <int> years: number of years worth of data to show
 # Output: <dictionary> masterDic: dictionary of dictionaries. Example:
 #   {'chart0': {'stockmetrics': {'sbux': {'Ask':3,'Bid':4,..}} ,'highChartsDic':{<highcharts constructor>}}}
-def loadData(years,csv=False):
+def loadData(years,csv=False,csvfile=False):
     if csv:
-        df = pd.read_csv(csv)
+        df = csvfile
     else:
         df = pd.read_csv('input.csv')
     companySym = list(df['stockname'])

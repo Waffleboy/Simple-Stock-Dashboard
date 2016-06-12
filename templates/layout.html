@@ -38,28 +38,12 @@
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
             <ul class="nav navbar-nav">
                 <li class="active"><a href="#">Main <span class="sr-only">(current)</span></a></li>
-                <input type="file" accept=".csv" id="uploadfiles" />
-                <script>function uploadFile(file){
-                    var url = 'http://localhost:5000/upload';
-                    var xhr = new XMLHttpRequest();
-                    var fd = new FormData();
-                    xhr.open("POST", url, true);
-                    xhr.onreadystatechange = function() {
-                        if (xhr.readyState == 4 && xhr.status == 200) {
-                            // Every thing ok, file uploaded
-                            console.log(xhr.responseText); // handle response.
-                        }
-                    };
-                    fd.append("upload_file", file);
-                    xhr.send(fd);
-                }</script>
-                <script>var uploadfiles = document.querySelector('#uploadfiles');
-                uploadfiles.addEventListener('change', function () {
-                    var files = this.files;
-                    for(var i=0; i<files.length; i++){
-                        uploadFile(this.files[i]); // call the function to upload the file
-                    }
-                }, false);</script>
+                <li>
+                <form action="upload" method="post" enctype="multipart/form-data">
+                    <input type="file" accept=".csv" name="file">
+                    <input type="submit" value="Upload">
+                </form>
+                </li>
             </ul>
         </div>
     </div>
