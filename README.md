@@ -34,5 +34,5 @@ pip install -r requirements.txt
 ## Future Improvements
 
 + Realtime graph
-+ stock health
-+ profit made
++ Stock Health metric
++ ~~Profit Made~~ Done
