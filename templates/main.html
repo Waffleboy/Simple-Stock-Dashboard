@@ -1,15 +1,36 @@
 {% extends "layout.html" %}
 {% block body %}
 
-<style>
-    th{text-align:center}
-</style>
 {% for chart, value in masterDic.items() %}
 <div class ="col-lg-4 col-md-6 col-s-12">
     <div id="{{chart|safe}}"></div>
     <div class="table-responsive text-center">
         <table class="table">
-            {% for metric, metricValue in value['textdata'].items() %}
+            <thead>
+            <tr>
+                <td>Stocks Owned:</td>
+                <td>Current Profit:</td>
+                <td>Current Value:</td>
+                <td>Total Purchase Cost:</td>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td> {{ value['performance']['boughtamount'] }}</td>
+                {% if value['performance']['currentProfit'] <=0 %}
+                    <td class = "loss">$ {{ value['performance']['currentProfit'] }}</td>
+                {% else %}
+                    <td class = "profit">$ {{ value['performance']['currentProfit'] }}</td>
+                {% endif %}
+                <td>$ {{ value['performance']['currentValue'] }}</td>
+                <td>$ {{ value['performance']['totalPurchaseCost'] }}</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="table-responsive text-center">
+        <table class="table">
+            {% for metric, metricValue in value['stockmetrics'].items() %}
             <tr>
                 <th> {{ metric }} </th>
                 <td> {{ metricValue }} </td>
@@ -18,7 +39,7 @@
         </table>
     </div>
     <script>
-        new Highcharts.StockChart({{value['content']|safe}});
+        new Highcharts.StockChart({{value['highChartsDic']|safe}});
     </script>
 </div>
 {% endfor %}

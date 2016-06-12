@@ -25,7 +25,7 @@ def main():
 # generates the master dictionary that contains all information for text and graph
 # Input: <int> years: number of years worth of data to show
 # Output: <dictionary> masterDic: dictionary of dictionaries. Example:
-#   {'chart0': {'textdata': {'sbux': {'Ask':3,'Bid':4,..}} ,'content':{<highcharts constructor>}}}
+#   {'chart0': {'stockmetrics': {'sbux': {'Ask':3,'Bid':4,..}} ,'highChartsDic':{<highcharts constructor>}}}
 def loadData(years):
     df = pd.read_csv('input.csv')
     companySym = list(df['stockname'])
@@ -33,6 +33,7 @@ def loadData(years):
     queryDF = pd.read_csv(query,header=None).fillna('NA') #actual query
     columnNames = getColumnNames(additionalOptions) 
     queryDF.columns = columnNames #set columm names to actual names of options
+    queryDF = queryDF.round(3)
     col = queryDF.set_index('Symbol').T.to_dict() #make dictionary of key: symbol, value: everything in the row
     masterDic = populateMasterDic(df,col,years,OrderedDict()) #populate an orderedDict with data
     return masterDic
@@ -46,9 +47,11 @@ def loadData(years):
 # Output:
 # 1. <OrderedDict> masterDic: masterdic populated with information
 def populateMasterDic(df,col,years,masterDic):
-    for i in df.index:
-        name=df['stockname'][i]
-        boughtprice = df['boughtprice'][i]
+    for index in df.index:
+        name=df['stockname'][index]
+        boughtprice = df['boughtprice'][index]
+        boughtamount = df['boughtamount'][index]
+        
         data = DataReader(name,'yahoo', datetime.now()-timedelta(days=365*years), datetime.now())
         data = data[['Adj Close']]
         #make 21 day moving average
@@ -61,25 +64,45 @@ def populateMasterDic(df,col,years,masterDic):
             data['bought'] = bought
         else:
             data = pd.DataFrame(data)
-        content = serialize(data,render_to='chart'+str(i), title=name.upper()+' Stock',output_type='json')
+        content = serialize(data,render_to='chart'+str(index), title=name.upper()+' Stock',output_type='json')
         content = changeChartOptions(content)
-        masterDic['chart'+str(i)] = {'textdata':col[name],'content':content}
+        
+        # get total purchase cost, etc
+        stockPerformance = getStockPerformance(data,boughtamount,boughtprice)
+        masterDic['chart'+str(index)] = {'stockmetrics':col[name],'highChartsDic':content,
+                                          'performance':stockPerformance}
     return masterDic
-    
+
+def getStockPerformance(data,boughtamount,boughtprice):
+    latestSellPrice = float(data['Adj Close'].tail(1))
+    latestSellPrice = round(latestSellPrice,4)
+    if pd.isnull(boughtprice) or pd.isnull(boughtamount):
+        totalPurchaseCost,currentValue,currentProfit = 'NA','NA','NA'
+    else:
+        totalPurchaseCost = boughtprice*boughtamount
+        currentValue = boughtamount*latestSellPrice
+        currentProfit = currentValue - totalPurchaseCost
+    return {'boughtamount':boughtamount,
+            'totalPurchaseCost':totalPurchaseCost,
+            'currentValue':round(currentValue,3),
+            'currentProfit': round(currentProfit,3)}
+            
 # This function adds additional options into the HighCharts dictionary
 # Input: <json> content: json that will be passed to highcharts
 # Output: <json> content: modified json to be passed to highcharts
 def changeChartOptions(content):
     content = json.loads(content)
     # add a range selector
-    content['rangeSelector'] = {'buttons':[{'type':'minute','count':24*60,
-    'text':'24HR'},{'type':'week','count':1,'text':'1W'},{'type':'month','count':1,
+    content['rangeSelector'] = {'buttons':[{'type':'day','count':3,
+    'text':'3D'},{'type':'week','count':1,'text':'1W'},{'type':'month','count':1,
     'text':'1M'},{'type':'month','count':3,'text':'3M'},{'type':'year','count':1,
-    'text':'1Y'},{'type':'all','text':'ALL'}]}
+    'text':'1Y'},{'type':'all','text':'ALL'}],
+    'selected':1}
     # disable credits
     content['credits']={'enabled':False}
     # add y axis title
     content['yAxis'] = {'title':{'text':'$','rotation':0}}
+    content['xAxis'] = {'minRange': 86400}
     content = json.dumps(content)
     return content
 
@@ -109,7 +132,7 @@ def getQuery(companySym):
 # Input: <List> additionalOptions: the list of additional options
 # Output: <List> columnNames: a list of the full names of the options
 def getColumnNames(additionalOptions):
-    with open('nameMatch.pkl', 'rb') as handle:
+    with open('static/lookup_files/nameMatch.pkl', 'rb') as handle:
         referenceDic = pickle.load(handle)
     columnNames = [referenceDic[x] for x in additionalOptions]
     return columnNames

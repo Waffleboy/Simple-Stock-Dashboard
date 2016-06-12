@@ -1,0 +1,22 @@
+
+/* For stock performance*/
+thead{
+    font-weight: bold;
+}
+
+/* For the stock metrics */
+th{
+    text-align:center;
+}
+.table{
+    border-collapse: collapse;
+    border-spacing:0;
+    margin-bottom: 0;
+}
+
+.profit{
+    color: limegreen;
+}
+.loss{
+    color:red;
+}
