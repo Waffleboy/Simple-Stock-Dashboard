@@ -4,7 +4,7 @@ Created on Sun Jun  5 15:54:03 2016
 
 @author: waffleboy
 """
-from flask import Flask, render_template
+from flask import Flask, render_template,request,redirect,url_for
 from pandas.io.data import DataReader
 from datetime import datetime
 from datetime import timedelta
@@ -22,12 +22,21 @@ def main():
     masterDic = loadData(years=5)
     return render_template('main.html',masterDic=masterDic)
 
+@app.route('/upload', methods=['GET', 'POST'])
+def upload():
+   if request.method == 'POST':
+      masterDic = loadData(5,request.args.get('file'))
+      return render_template('main.html',masterDic=masterDic)
+   
 # generates the master dictionary that contains all information for text and graph
 # Input: <int> years: number of years worth of data to show
 # Output: <dictionary> masterDic: dictionary of dictionaries. Example:
 #   {'chart0': {'stockmetrics': {'sbux': {'Ask':3,'Bid':4,..}} ,'highChartsDic':{<highcharts constructor>}}}
-def loadData(years):
-    df = pd.read_csv('input.csv')
+def loadData(years,csv=False):
+    if csv:
+        df = pd.read_csv(csv)
+    else:
+        df = pd.read_csv('input.csv')
     companySym = list(df['stockname'])
     query,additionalOptions = getQuery(companySym) #generate link to query from, column names to map
     queryDF = pd.read_csv(query,header=None).fillna('NA') #actual query
@@ -70,7 +79,7 @@ def populateMasterDic(df,col,years,masterDic):
         # get total purchase cost, etc
         stockPerformance = getStockPerformance(data,boughtamount,boughtprice)
         masterDic['chart'+str(index)] = {'stockmetrics':col[name],'highChartsDic':content,
-                                          'performance':stockPerformance}
+                                           'performance':stockPerformance}
     return masterDic
 
 def getStockPerformance(data,boughtamount,boughtprice):
