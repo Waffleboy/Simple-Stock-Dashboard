@@ -4,7 +4,7 @@ Created on Sun Jun  5 15:54:03 2016
 
 @author: waffleboy
 """
-from flask import Flask, render_template
+from flask import Flask, render_template,request
 from pandas.io.data import DataReader
 from datetime import datetime
 from datetime import timedelta
@@ -12,23 +12,59 @@ import pandas as pd
 import pickle,json
 from pandas_highcharts.core import serialize
 from collections import OrderedDict
+from io import StringIO
 
 app = Flask(__name__) #initialize app
+app.config['ALLOWED_EXTENSIONS'] = set(['csv'])
 
 # Main function - Displays the data from masterDic, which contains all the information
 # to make the dashboard.
 @app.route("/")
 def main():
-    masterDic = loadData(years=5)
-    return render_template('main.html',masterDic=masterDic)
+    masterDic,summaryStats = loadData(years=5)
+    return render_template('main.html',masterDic=masterDic,summaryStats=summaryStats)
 
+
+#==============================================================================
+#                   File Upload Specific
+#==============================================================================
+@app.route('/upload', methods=['POST'])
+def upload():
+    file = request.files['file']
+    # Check if the file is one of the allowed types/extensions
+    if file and allowed_file(file.filename):
+        file = file.read().decode("utf-8") 
+        csv = pd.read_csv(StringIO(file))
+        if checkFileForAttacks(csv):
+            return 'Your file was not accepted due to input flaws! Check your columns and try again'
+        masterDic = loadData(5,True,csv)
+        return render_template('main.html',masterDic=masterDic)
+        
+# For a given file, return whether it's an allowed type or not
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1] in app.config['ALLOWED_EXTENSIONS']
+           
+def checkFileForAttacks(csv):
+    cols = list(csv.columns)
+    if len(cols) != 3:
+        return True
+    if not all(x in cols for x in ['stockname','boughtprice','boughtamount']):
+        return True
+    return False
+#==============================================================================
+    
+    
 # generates the master dictionary that contains all information for text and graph
 # Input: <int> years: number of years worth of data to show
 # Output: <dictionary> masterDic: dictionary of dictionaries. Example:
 #   {'chart0': {'stockmetrics': {'sbux': {'Ask':3,'Bid':4,..}} ,'highChartsDic':{<highcharts constructor>}}}
-def loadData(years):
-    df = pd.read_csv('input.csv')
-    companySym = list(df['stockname'])
+def loadData(years,csv=False,csvfile=False):
+    if csv:
+        df = csvfile
+    else:
+        df = pd.read_csv('input.csv')
+    companySym = list(df['stockname'])    
     query,additionalOptions = getQuery(companySym) #generate link to query from, column names to map
     queryDF = pd.read_csv(query,header=None).fillna('NA') #actual query
     columnNames = getColumnNames(additionalOptions) 
@@ -36,7 +72,22 @@ def loadData(years):
     queryDF = queryDF.round(3)
     col = queryDF.set_index('Symbol').T.to_dict() #make dictionary of key: symbol, value: everything in the row
     masterDic = populateMasterDic(df,col,years,OrderedDict()) #populate an orderedDict with data
-    return masterDic
+    summary = getSummaryStatistics(masterDic)
+    return masterDic,summary
+
+def getSummaryStatistics(masterDic):
+    totalProfit = 0
+    totalValue = 0
+    totalCost = 0
+    totalStock = 0
+    for key in masterDic:
+        totalProfit += masterDic[key]['performance']['currentProfit']
+        totalValue += masterDic[key]['performance']['currentValue']
+        totalCost += masterDic[key]['performance']['totalPurchaseCost']
+        totalStock += masterDic[key]['performance']['boughtamount']
+    return {'totalProfit':totalProfit,'totalValue':totalValue,
+            'totalCost':totalCost,'totalStock':totalStock}
+        
 
 # Used by loadData(), fills the ordered dict with information
 # Input:
@@ -70,14 +121,14 @@ def populateMasterDic(df,col,years,masterDic):
         # get total purchase cost, etc
         stockPerformance = getStockPerformance(data,boughtamount,boughtprice)
         masterDic['chart'+str(index)] = {'stockmetrics':col[name],'highChartsDic':content,
-                                          'performance':stockPerformance}
+                                           'performance':stockPerformance}
     return masterDic
 
 def getStockPerformance(data,boughtamount,boughtprice):
     latestSellPrice = float(data['Adj Close'].tail(1))
     latestSellPrice = round(latestSellPrice,4)
     if pd.isnull(boughtprice) or pd.isnull(boughtamount):
-        totalPurchaseCost,currentValue,currentProfit = 'NA','NA','NA'
+        totalPurchaseCost,currentValue,currentProfit = 0,0,0
     else:
         totalPurchaseCost = boughtprice*boughtamount
         currentValue = boughtamount*latestSellPrice
