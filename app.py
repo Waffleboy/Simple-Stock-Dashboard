@@ -4,7 +4,7 @@ Created on Sun Jun  5 15:54:03 2016
 
 @author: waffleboy
 """
-from flask import Flask, render_template,request
+from flask import Flask, render_template
 from pandas.io.data import DataReader
 from datetime import datetime
 from datetime import timedelta
@@ -12,10 +12,8 @@ import pandas as pd
 import pickle,json
 from pandas_highcharts.core import serialize
 from collections import OrderedDict
-from io import StringIO
 
 app = Flask(__name__) #initialize app
-app.config['ALLOWED_EXTENSIONS'] = set(['csv'])
 
 # Main function - Displays the data from masterDic, which contains all the information
 # to make the dashboard.
@@ -24,37 +22,6 @@ def main():
     masterDic,summaryStats = loadData(years=5)
     return render_template('main.html',masterDic=masterDic,summaryStats=summaryStats)
 
-
-#==============================================================================
-#                   File Upload Specific
-#==============================================================================
-@app.route('/upload', methods=['POST'])
-def upload():
-    file = request.files['file']
-    # Check if the file is one of the allowed types/extensions
-    if file and allowed_file(file.filename):
-        file = file.read().decode("utf-8") 
-        csv = pd.read_csv(StringIO(file))
-        if checkFileForAttacks(csv):
-            return 'Your file was not accepted due to input flaws! Check your columns and try again'
-        masterDic = loadData(5,True,csv)
-        return render_template('main.html',masterDic=masterDic)
-        
-# For a given file, return whether it's an allowed type or not
-def allowed_file(filename):
-    return '.' in filename and \
-           filename.rsplit('.', 1)[1] in app.config['ALLOWED_EXTENSIONS']
-           
-def checkFileForAttacks(csv):
-    cols = list(csv.columns)
-    if len(cols) != 3:
-        return True
-    if not all(x in cols for x in ['stockname','boughtprice','boughtamount']):
-        return True
-    return False
-#==============================================================================
-    
-    
 # generates the master dictionary that contains all information for text and graph
 # Input: <int> years: number of years worth of data to show
 # Output: <dictionary> masterDic: dictionary of dictionaries. Example:
