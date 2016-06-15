@@ -13,6 +13,7 @@ th{
     border-spacing:0;
     margin-bottom: 0;
 }
+.navbar { margin-bottom: 0 }
 
 .profit{
     color: limegreen;

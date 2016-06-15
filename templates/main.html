@@ -1,6 +1,33 @@
 {% extends "layout.html" %}
 {% block body %}
 
+<div class = "col-lg-6 col-lg-offset-3 col-md-12">
+    <div class="table-responsive text-center">
+        <table class="table">
+            <thead>
+                <tr>
+                    <td>Total Stocks Owned</td>
+                    <td>Total Profit</td>
+                    <td>Total Stock Value</td>
+                    <td>Total Purchase Cost</td>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>{{summaryStats['totalStock']|safe}}</td>
+                    {% if summaryStats['totalProfit'] <=0 %}
+                    <td class = "loss"> $ {{summaryStats['totalProfit']|safe}}</td>
+                    {% else %}
+                    <td class = "profit">$ {{summaryStats['totalProfit']|safe}}</td>
+                    {% endif %}
+                    <td>$ {{summaryStats['totalValue']|safe}}</td>
+                    <td>$ {{summaryStats['totalCost']|safe}}</td>
+                </tr>
+            </tbody>
+            </table>
+        </div>
+</div>
+
 {% for chart, value in masterDic.items() %}
 <div class ="col-lg-4 col-md-6 col-sm-12">
     <div id="{{chart|safe}}"></div>
