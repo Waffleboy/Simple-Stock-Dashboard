@@ -21,3 +21,11 @@ th{
 .loss{
     color:red;
 }
+
+div#instruction li{
+    margin: 10px 0;
+}
+
+div#instruction{
+    font-size: 110%;
+}

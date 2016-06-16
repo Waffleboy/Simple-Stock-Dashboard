@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Stock Dashboard By Thiru</title>
+    <link rel="shortcut icon" type="image/x-icon" href="static/images/favicon-line-chart.ico"/>
+    <!-- Superhero theme from bootswatch-->
+    <link href="https://maxcdn.bootstrapcdn.com/bootswatch/3.3.6/superhero/bootstrap.min.css" rel="stylesheet" integrity="sha384-88w0u/oucDSTE30ETLLIobzhT+bQ6CSsiqQyLZpwHvve89eqUA9F2Db6ST6jGRLx" crossorigin="anonymous">
+    <!-- BOOTSTRAP JS -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="static/css/style.css">
+</head>
+<body>
+<!-- Navbar -->
+<nav class="navbar navbar-default">
+    <div class="container-fluid">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="#">Simple Stock Dashboard</a>
+        </div>
+
+        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+            <ul class="nav navbar-nav">
+                <li><a href="/">Main</a></li>
+                <li class="active"><a href="#">Instructions <span class="sr-only">(current)</span></a></li>
+                <li>
+                    <form action="upload" method="post" enctype="multipart/form-data">
+                        <input type="file" accept=".csv" name="file">
+                        <input type="submit" value="Upload">
+                    </form>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class = "col-lg-8 col-lg-offset-2 col-md-8 col-md-offset-2 col-sm-12">
+<div id = "instruction">
+    <h2> What is the Simple Stock Dashboard?</h2>
+Frustrated with having to open multiple tabs to see the performance of multiple stocks? Want to get a quick comprehensive overview of your portfolio quickly without being forced to pay for an expensive service?
+    <br><br>
+Simple Stock Dashboard was built with these principles in mind. It aims to provide a holistic overview of your entire portfolio with key metrics, with minimal user input and frustration. Simple Stock Dashboard also collects no information, and the data is only stored in your local computer, under your total control.
+
+    <h2>Important Info</h2>
+    This website is only meant as a DEMO of the dashboard. The user is supposed to clone the official
+    <a href = "https://github.com/Waffleboy/Simple-Stock-Dashboard">Github repo</a> and run it locally, so you avoid
+    having to re-upload a CSV everytime you want to track your portfolio performance.
+
+    <h2>How Do I Use It?</h2>
+    <ul>
+    <li>The default dashboard displays pre-selected stock information. To track your own, simply upload a CSV file
+        with the columns stockname / boughtprice / boughtamount. Eg.</li>
+        <ul>
+        <li> stockname : the symbol of the stock</li>
+        <li> boughtprice : the price you bought the stock (optional)</li>
+        <li> boughtamount : the quantity of stock you purchased at boughtprice </li>
+        </ul>
+    <li>An example can be found here:
+        <a href = "https://github.com/Waffleboy/Simple-Stock-Dashboard/blob/master/input.csv">Input Example</a></li>
+    <li> The dashboard generates a summary for all your stock at the top of the page, and individual graphs + stock
+    metrics for each stock that you specify.</li>
+    </ul>
+
+    <h2>Hey I've got a Cool Suggestion!</h2>
+    Let me know! Give me a shout out via <a href = "https://github.com/Waffleboy">Github</a> or my
+    <a href="http://thiru.ml">website</a>. Even better, if you want to add it yourself, submit your feature and a pull request, and I'll integrate it
+    and give you credit :)
+
+    <h2>Dude Could You Design This Page Any Worse?</h2>
+    I know :( Sorry! This was made in a hurry, expect a snazzier instructions page soon :)
+</div>
+</body>
+</html>
+

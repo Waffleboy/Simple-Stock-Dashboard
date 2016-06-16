@@ -25,7 +25,10 @@ def main():
     masterDic,summaryStats = loadData(years=5)
     return render_template('main.html',masterDic=masterDic,summaryStats=summaryStats)
 
-
+@app.route("/instructions")
+def instructions():
+    return render_template('instructions.html')
+    
 #==============================================================================
 #                   File Upload Specific
 #==============================================================================
@@ -191,4 +194,4 @@ def getColumnNames(additionalOptions):
     
 if __name__ == "__main__":
     app.run(debug=False,host = '0.0.0.0',port= int(os.environ.get('PORT', 33507))) #PROD
-	#app.run(port=5000,debug=True)
+    #app.run(port=5000,debug=True)
