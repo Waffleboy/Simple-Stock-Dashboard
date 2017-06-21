@@ -5,14 +5,16 @@ Created on Sun Jun  5 15:54:03 2016
 @author: waffleboy
 """
 from flask import Flask, render_template,request
-from pandas.io.data import DataReader
+from pandas_datareader import DataReader
 from datetime import datetime
 from datetime import timedelta
 import pandas as pd
 import os
+import ast
 import pickle,json
 from pandas_highcharts.core import serialize
 from collections import OrderedDict
+import requests
 from io import StringIO
 
 app = Flask(__name__) #initialize app
@@ -70,7 +72,8 @@ def loadData(years,csv=False,csvfile=False):
         df = pd.read_csv('input.csv')
     companySym = list(df['stockname'])    
     query,additionalOptions = getQuery(companySym) #generate link to query from, column names to map
-    queryDF = pd.read_csv(query,header=None).fillna('NA') #actual query
+    queryDF = fix_overall_details_request(query)
+    queryDF["Symbol"] = queryDF["Symbol"].map(lambda x:x.replace('"',''))
     columnNames = getColumnNames(additionalOptions) 
     queryDF.columns = columnNames #set columm names to actual names of options
     queryDF = queryDF.round(3)
@@ -107,7 +110,7 @@ def populateMasterDic(df,col,years,masterDic):
         boughtprice = df['boughtprice'][index]
         boughtamount = df['boughtamount'][index]
         
-        data = DataReader(name,'yahoo', datetime.now()-timedelta(days=365*years), datetime.now())
+        data = fix_ticker_details_request(name, datetime.now()-timedelta(days=365*years), datetime.now())
         data = data[['Adj Close']]
         #make 21 day moving average
         data['21DayAvg'] = data['Adj Close'].rolling(21).mean().fillna(0)
@@ -191,6 +194,61 @@ def getColumnNames(additionalOptions):
         referenceDic = pickle.load(handle)
     columnNames = [referenceDic[x] for x in additionalOptions]
     return columnNames
+    
+# Quick hack for fixing yahoo blocking all non mobile requests.
+def fix_overall_details_request(query):
+    headers = { 'User-Agent': "Mozilla/5.0 (Linux; Android 6.0.1; MotoG3 Build/MPI24.107-55) AppleWebKit/537.36 (KHTML like Gecko) Chrome/51.0.2704.81 Mobile Safari/537.36" }
+    ob = requests.get(query,headers=headers)
+    
+    data = ob.text.split('\n')[:-1] #take everything except last blank
+    data = [x.split(',') for x in data] #split stringified elements into own lists
+    df = pd.DataFrame(data).replace('N/A','NA')
+    return df
+    
+# Quick hack for fixing yahoo blocking all non mobile requests.
+def fix_ticker_details_request(ticker_name,date_start,date_end):
+    STOCK_URL = "https://uk.finance.yahoo.com/quote/{}/history".format(ticker_name)
+    
+    ## obtain crumb and cookie
+    crumb,cookie = get_crumb_and_cookie(STOCK_URL)
+    
+    begin_date = convert_datetime_to_unix(date_start)
+    end_date = convert_datetime_to_unix(date_end)
+    BASE_URL = 'https://query1.finance.yahoo.com/v7/finance/download/{}?period1={}&period2={}&interval=1d&events=history&crumb={}'.format(ticker_name,begin_date,end_date,crumb)
+    
+    req = requests.get(BASE_URL,headers = {"cookie":cookie})
+    if req.status_code == 200:
+        data = req.text.split('\n')[:-1] #remove last blank entry
+        data = [x.split(',') for x in data]
+        colnames = data[0]
+        data = data[1:]
+        df = pd.DataFrame.from_records(data,columns=colnames)
+        return df
+    print("Error - Could not request for ticker {} details".format(ticker_name))
+    return
+
+#helper for overcoming yahoo's block
+def get_crumb_and_cookie(url):
+    req = requests.get(url)
+    if req.status_code == 200:
+        text = req.text
+        id_num = text.find("CrumbStore")
+        if id_num == -1:
+            print("No crumb")
+        text = text[id_num:id_num+50]
+        text = text[text.find('{'):text.find('}')+1]
+        dic = ast.literal_eval(text)
+        crumb = dic['crumb']
+        print("Obtained crumb for url {}: {}".format(url,crumb))
+        
+        cookie = req.headers["Set-Cookie"]
+        return crumb,cookie
+    # TODO: Change to proper logs
+    print("Request to get crumb failed")
+    return
+    
+def convert_datetime_to_unix(date):
+    return str(int(date.timestamp()))
     
 if __name__ == "__main__":
     app.run(debug=False,host = '0.0.0.0',port= int(os.environ.get('PORT', 33507))) #PROD
