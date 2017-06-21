@@ -40,6 +40,6 @@ pip install -r requirements.txt
 + ~~Profit Made~~ Done
 
 ## IMPORTANT NOTES 21/06/2017
-Yahoo just disabled access to their Finance API, and only mobile requests or a loophole using crumbs work. I've patched this, but there's no guarantee this will continue working. Use at own risk.
+Yahoo just disabled access to their Finance API, and only mobile requests or a loophole using crumbs to work. I've patched this, but there's no guarantee this will continue working. Use at own risk.
 
 
