@@ -5,7 +5,6 @@ Created on Sun Jun  5 15:54:03 2016
 @author: waffleboy
 """
 from flask import Flask, render_template,request
-from pandas_datareader import DataReader
 from datetime import datetime
 from datetime import timedelta
 import pandas as pd
