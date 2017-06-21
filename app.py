@@ -72,9 +72,9 @@ def loadData(years,csv=False,csvfile=False):
     companySym = list(df['stockname'])    
     query,additionalOptions = getQuery(companySym) #generate link to query from, column names to map
     queryDF = fix_overall_details_request(query)
-    queryDF["Symbol"] = queryDF["Symbol"].map(lambda x:x.replace('"',''))
     columnNames = getColumnNames(additionalOptions) 
     queryDF.columns = columnNames #set columm names to actual names of options
+    queryDF["Symbol"] = queryDF["Symbol"].map(lambda x:x.replace('"',''))
     queryDF = queryDF.round(3)
     col = queryDF.set_index('Symbol').T.to_dict() #make dictionary of key: symbol, value: everything in the row
     masterDic = populateMasterDic(df,col,years,OrderedDict()) #populate an orderedDict with data
