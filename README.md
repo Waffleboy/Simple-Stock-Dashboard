@@ -1,5 +1,7 @@
 # Simple_Stock_Dashboard
 
+See a trial of it in action at http://thiru.ml/simplestockdashboard
+
 ## Description
 
 Frustrated with having to open multiple tabs to see the performance of multiple stocks? Want to get a quick comprehensive overview of your portfolio quickly without being forced to pay for an expensive service?
@@ -36,3 +38,8 @@ pip install -r requirements.txt
 + Realtime graph
 + Stock Health metric
 + ~~Profit Made~~ Done
+
+## IMPORTANT NOTES 21/06/2017
+Yahoo just disabled access to their Finance API, and only mobile requests or a loophole using crumbs work. I've patched this, but there's no guarantee this will continue working. Use at own risk.
+
+
